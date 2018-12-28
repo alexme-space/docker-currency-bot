@@ -1,0 +1,56 @@
+# read manuals with version updates (compose commands are regularely updated)
+version: '3'
+
+# docker containers (services), that must be run together
+# running "docker-compose up" on the new compose file will build services in specified order (with "links" and "depends on" command processing)
+services:
+  # service name (eg any name)
+  # this string can be used in links command further for exemple
+  nginx:
+    image: nginx:latest
+    restart: always
+    # we can use environment variables in docker compose file (same as in Dockerfile)
+    # in this config you are expected to have .env file with these variable values 
+    ports:
+      - "${HTTP_LOCAL_PORT}:80"
+      - "${HTTPS_LOCAL_PORT}:443"
+    # you better start local volume names with dot entry or Docker can bring you a headache
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/www:/var/www
+      - ./nginx/logs:/var/log/nginx
+    # adding service container address into hosts file so that current container can interact with linked by service name
+    links:
+      - php
+    
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - "${REDIS_LOCAL_PORT}:6379"
+    volumes:
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf
+      - ./redis/logs:/var/log/redis.log
+      - ./redis/data:/var/lib/redis
+    
+  mysql:
+    image: mysql:latest
+    restart: always
+    ports:
+      - "${MYSQL_LOCAL_PORT}:3306"
+    # env variables can be set in this manner too
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    volumes:
+      - ./mysql/databases:/var/lib/mysql
+    
+  php:
+    # building container from Dockerfile, not "on the compose fly"
+    # it takes Dockerfile from "php" directory in current dir
+    build: php
+    volumes:
+      - ./nginx/www:/var/www
+    links:
+      - mysql
+      - redis
