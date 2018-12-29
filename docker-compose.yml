@@ -49,6 +49,7 @@ services:
     # building container from Dockerfile, not "on the compose fly"
     # it takes Dockerfile from "php" directory in current dir
     build: php
+    # important to match volumes here same as in nginx conf
     volumes:
       - ./nginx/www:/var/www
     links:

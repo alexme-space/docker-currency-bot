@@ -23,8 +23,12 @@ RUN docker-php-ext-install intl
 RUN docker-php-ext-install xsl
 RUN docker-php-ext-install soap
 
+RUN apt-get install -y iputils-ping telnet
+
 RUN mv "$PHP_INI_DIR/php.ini-development" "$PHP_INI_DIR/php.ini"
 
 ADD ./php.ini /usr/local/etc/php/conf.d/40-custom.ini
 
+ENV PHP_IDE_CONFIG="serverName=Docker"
+	
 CMD ["php-fpm"]
